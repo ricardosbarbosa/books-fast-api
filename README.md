@@ -4,18 +4,32 @@ A FastAPI application for managing books and articles with SQLite database using
 
 ## Features
 
-- **CRUD Operations**: Create, Read, Update, Delete books and articles
-- **JWT Authentication**: Secure user authentication with JWT tokens
-- **Authorization**: Role-based access control (regular users vs superusers)
-- **User Management**: User registration, login, and profile management
-- **Search**: Search books by title/author, articles by title/author/content
-- **Pagination**: Get books and articles with pagination support
-- **Advanced Filtering**: Filter articles by category and publication status
+### 🚀 Core API Features
+- **CRUD Operations**: Complete Create, Read, Update, Delete for books and articles
+- **Advanced Search**: Full-text search across titles, authors, and content
+- **Smart Filtering**: Filter articles by category and publication status
+- **Pagination**: Efficient data pagination for large datasets
 - **ISBN Support**: Unique ISBN validation for books
-- **Data Validation**: Pydantic models for request/response validation
-- **Auto Documentation**: Interactive API docs with Swagger UI
-- **SQLite Database**: Lightweight database with SQLAlchemy ORM
+
+### 🔐 Security & Authentication
+- **JWT Authentication**: Secure token-based authentication system
+- **Role-based Authorization**: Different access levels for regular users and superusers
+- **User Management**: Registration, login, and profile management
+- **Password Security**: bcrypt hashing with automatic length validation
+- **Protected Endpoints**: Create/Update/Delete operations require authentication
+
+### 🏗️ Architecture & Development
 - **Modular Architecture**: Organized route, model, and schema structure for scalability
+- **Data Validation**: Pydantic models for comprehensive request/response validation
+- **Auto Documentation**: Interactive API docs with Swagger UI and ReDoc
+- **Environment Configuration**: Configurable via environment variables
+- **Automated Setup**: One-command setup with secure key generation
+
+### 🗄️ Database & Performance
+- **SQLite Database**: Lightweight, serverless database (easily upgradeable)
+- **SQLAlchemy ORM**: Robust object-relational mapping
+- **Database Migrations**: Ready for production database migrations
+- **Connection Pooling**: Efficient database connection management
 
 ## Project Structure
 
@@ -23,6 +37,10 @@ A FastAPI application for managing books and articles with SQLite database using
 books-api/
 ├── main.py              # FastAPI application entry point
 ├── auth.py              # JWT authentication utilities
+├── database.py          # Database configuration and connection
+├── setup_env.py         # Environment setup script
+├── env.example          # Environment variables template
+├── .env                 # Environment variables (auto-generated)
 ├── models/              # Modular model structure
 │   ├── __init__.py      # Model package initialization
 │   ├── base.py          # SQLAlchemy Base class
@@ -41,26 +59,55 @@ books-api/
 │   ├── articles.py      # Article-related API endpoints
 │   └── auth.py          # Authentication API endpoints
 ├── requirements.txt     # Python dependencies
+├── .gitignore          # Git ignore rules
 └── README.md           # This file
 ```
 
-## Installation
+## Quick Start
+
+### 🚀 Automated Setup (Recommended)
 
 1. **Clone or navigate to the project directory:**
    ```bash
    cd books-api
    ```
 
-2. **Create a virtual environment (recommended):**
+2. **Create and activate virtual environment:**
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
    ```
 
 3. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
+
+4. **Set up environment variables:**
+   ```bash
+   python setup_env.py
+   ```
+
+5. **Run the application:**
+   ```bash
+   python main.py
+   ```
+
+6. **Access the API:**
+   - API Documentation: http://localhost:8000/docs
+   - Alternative Docs: http://localhost:8000/redoc
+
+### ✨ Setup Script Features
+
+The `setup_env.py` script automatically:
+- 🔑 **Generates secure secret keys** - Creates cryptographically secure JWT secrets
+- 📝 **Creates .env file** - Sets up environment configuration
+- ⚙️ **Configures defaults** - Uses production-ready settings
+- 🛡️ **Security first** - Ensures secure defaults for development
+
+## Manual Installation
+
+If you prefer manual setup:
 
 4. **Set up environment variables:**
    
@@ -135,7 +182,19 @@ books-api/
 | GET | `/api/v1/articles/{article_id}` | Get a specific article by ID | No |
 | PUT | `/api/v1/articles/{article_id}` | Update an article | Yes |
 | DELETE | `/api/v1/articles/{article_id}` | Delete an article | Yes |
-| GET | `/api/v1/articles/category/{category}` | Get articles by category | No |
+
+### 🔍 Query Parameters
+
+#### Books & Articles List Endpoints
+- `page`: Page number (default: 1)
+- `size`: Items per page (default: 10, max: 100)
+- `search`: Search term for titles, authors, and content
+- `sort`: Sort field (title, author, created_at, etc.)
+- `order`: Sort order (asc, desc)
+
+#### Articles Additional Filters
+- `category`: Filter by article category
+- `published`: Filter by publication status (draft, published, archived)
 
 ### Other Endpoints
 
@@ -377,6 +436,43 @@ pip install alembic
 alembic init alembic
 ```
 
+## Troubleshooting
+
+### Common Issues
+
+#### 🔧 Port Already in Use
+```bash
+ERROR: [Errno 48] error while attempting to bind on address ('0.0.0.0', 8000): address already in use
+```
+**Solution:** Kill existing processes or use a different port:
+```bash
+pkill -f "python main.py"
+# Or run on different port:
+uvicorn main:app --port 8001
+```
+
+#### 🔐 Authentication Issues
+- **Password too long**: Ensure passwords are ≤72 characters (bcrypt limitation)
+- **Invalid token**: Check if token is expired (default: 30 minutes)
+- **User not found**: Verify username/email exists in database
+
+#### 📦 Dependency Issues
+```bash
+# If you get import errors, reinstall dependencies:
+pip install -r requirements.txt --force-reinstall
+```
+
+#### 🗄️ Database Issues
+- **Database locked**: Ensure no other processes are using the database
+- **Migration needed**: Delete `books.db` to recreate tables with latest schema
+
+### Getting Help
+
+1. **Check the logs** - Look for error messages in the terminal
+2. **Verify environment** - Ensure `.env` file exists and is properly configured
+3. **Test endpoints** - Use the interactive docs at `/docs` to test API endpoints
+4. **Check dependencies** - Ensure all packages are installed correctly
+
 ## Production Deployment
 
 For production deployment:
@@ -403,6 +499,61 @@ gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
 - **python-jose[cryptography]**: JWT token handling
 - **passlib[bcrypt]**: Password hashing and verification
 - **python-dotenv**: Environment variable management
+
+## Contributing
+
+We welcome contributions! Here's how to get started:
+
+### 🚀 Development Setup
+
+1. **Fork the repository** and clone your fork
+2. **Set up development environment:**
+   ```bash
+   git clone <your-fork-url>
+   cd books-api
+   python -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   python setup_env.py
+   ```
+
+3. **Create a feature branch:**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+4. **Make your changes** following the existing code structure
+5. **Test your changes:**
+   ```bash
+   python main.py
+   # Test endpoints at http://localhost:8000/docs
+   ```
+
+6. **Commit and push:**
+   ```bash
+   git add .
+   git commit -m "feat: your feature description"
+   git push origin feature/your-feature-name
+   ```
+
+7. **Submit a pull request** with a clear description
+
+### 📋 Development Guidelines
+
+- **Code Style**: Follow existing patterns and structure
+- **Documentation**: Update README for new features
+- **Testing**: Test all endpoints manually or add automated tests
+- **Security**: Ensure authentication/authorization is properly implemented
+- **Environment**: Use environment variables for configuration
+
+### 🐛 Reporting Issues
+
+When reporting issues, please include:
+- **Environment details** (OS, Python version)
+- **Steps to reproduce** the issue
+- **Expected vs actual behavior**
+- **Error messages** and logs
+- **Screenshots** if applicable
 
 ## License
 
