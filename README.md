@@ -159,7 +159,8 @@ If you prefer manual setup:
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
 | POST | `/api/v1/auth/register` | Register a new user | No |
-| POST | `/api/v1/auth/login` | Login user and get access token | No |
+| POST | `/api/v1/auth/login` | Login user (OAuth2 form - username field = email) | No |
+| POST | `/api/v1/auth/login-email` | Login user with email (JSON format) | No |
 | GET | `/api/v1/auth/google/login` | Initiate Google OAuth2 login | No |
 | GET | `/api/v1/auth/google/callback` | Google OAuth2 callback | No |
 | GET | `/api/v1/auth/me` | Get current user information | Yes |
@@ -229,7 +230,17 @@ curl -X POST "http://localhost:8000/api/v1/auth/register" \
 ```bash
 curl -X POST "http://localhost:8000/api/v1/auth/login" \
      -H "Content-Type: application/x-www-form-urlencoded" \
-     -d "username=john_doe&password=securepassword123"
+     -d "username=user@example.com&password=securepassword123"
+```
+
+#### Login User (Email-based JSON - Recommended)
+```bash
+curl -X POST "http://localhost:8000/api/v1/auth/login-email" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "email": "user@example.com",
+       "password": "securepassword123"
+     }'
 ```
 
 #### Get Current User Info

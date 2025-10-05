@@ -49,8 +49,35 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=Token)
 def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    """Login user and return access token"""
+    """
+    Login user and return access token
+    
+    Note: The 'username' field in the form should contain your email address.
+    This follows OAuth2 standards but we use email as the identifier.
+    """
     user = authenticate_user(db, form_data.username, form_data.password)  # form_data.username is actually email now
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.email}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.post("/login-email", response_model=Token)
+def login_with_email(user_login: UserLogin, db: Session = Depends(get_db)):
+    """
+    Login user with email and password (alternative to OAuth2 form)
+    
+    This endpoint accepts email and password directly in JSON format,
+    making it clearer that email is the identifier.
+    """
+    user = authenticate_user(db, user_login.email, user_login.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

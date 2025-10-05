@@ -27,7 +27,10 @@ pwd_context = CryptContext(
 )
 
 # OAuth2 scheme
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="api/v1/auth/login",
+    scheme_name="Email/Password Authentication"
+)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash"""
