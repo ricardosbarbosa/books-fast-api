@@ -3,7 +3,6 @@ from datetime import datetime
 from typing import Optional
 
 class UserBase(BaseModel):
-    username: str = Field(..., min_length=3, max_length=50, description="Username")
     email: EmailStr = Field(..., description="Email address")
     full_name: Optional[str] = Field(None, max_length=100, description="Full name")
 
@@ -11,7 +10,6 @@ class UserCreate(UserBase):
     password: str = Field(..., min_length=6, max_length=72, description="Password (max 72 characters)")
 
 class UserUpdate(BaseModel):
-    username: Optional[str] = Field(None, min_length=3, max_length=50)
     email: Optional[EmailStr] = None
     full_name: Optional[str] = Field(None, max_length=100)
     is_active: Optional[bool] = None
@@ -36,10 +34,10 @@ class Token(BaseModel):
     token_type: str
 
 class TokenData(BaseModel):
-    username: Optional[str] = None
+    email: Optional[str] = None
 
 class UserLogin(BaseModel):
-    username: str = Field(..., description="Username or email")
+    email: EmailStr = Field(..., description="Email address")
     password: str = Field(..., max_length=72, description="Password (max 72 characters)")
 
 class GoogleUserInfo(BaseModel):

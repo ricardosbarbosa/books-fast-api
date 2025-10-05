@@ -50,19 +50,34 @@ def get_google_authorization_url():
 
 async def get_google_user_info(access_token: str):
     """Get user information from Google using access token"""
-    async with AsyncOAuth2Client() as client:
-        response = await client.get(
-            GOOGLE_USER_INFO_URL,
-            headers={"Authorization": f"Bearer {access_token}"}
-        )
-        response.raise_for_status()
-        return response.json()
+    try:
+        import httpx
+        print(f"Making request to Google API: {GOOGLE_USER_INFO_URL}")
+        print(f"Using access token: {access_token[:20]}...")
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                GOOGLE_USER_INFO_URL,
+                headers={"Authorization": f"Bearer {access_token}"}
+            )
+            print(f"Google API response status: {response.status_code}")
+            response.raise_for_status()
+            user_info = response.json()
+            print(f"Google API response: {user_info}")
+            return user_info
+    except Exception as e:
+        print(f"Error fetching user info from Google: {str(e)}")
+        raise Exception(f"Failed to fetch user info from Google: {str(e)}")
 
 async def exchange_code_for_token(code: str):
     """Exchange authorization code for access token"""
-    client = get_google_oauth_client()
-    token_response = await client.fetch_token(
-        GOOGLE_TOKEN_URL,
-        code=code
-    )
-    return token_response
+    try:
+        client = get_google_oauth_client()
+        token_response = await client.fetch_token(
+            GOOGLE_TOKEN_URL,
+            code=code
+        )
+        return token_response
+    except Exception as e:
+        print(f"Token exchange error: {str(e)}")
+        raise Exception(f"Token exchange failed: {str(e)}")
