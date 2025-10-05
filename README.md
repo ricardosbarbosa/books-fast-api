@@ -63,11 +63,27 @@ books-api/
    ```
 
 4. **Set up environment variables:**
-   Create a `.env` file in the project root:
+   
+   **Option 1: Use the setup script (Recommended)**
+   ```bash
+   python setup_env.py
+   ```
+   
+   **Option 2: Manual setup**
+   Copy the environment template and customize:
+   ```bash
+   cp env.example .env
+   ```
+   
+   Then edit `.env` file with your settings:
    ```env
    SECRET_KEY=your-super-secret-key-change-this-in-production-123456789
    ALGORITHM=HS256
    ACCESS_TOKEN_EXPIRE_MINUTES=30
+   DATABASE_URL=sqlite:///./books.db
+   APP_NAME=Books & Articles API
+   APP_VERSION=1.0.0
+   CORS_ORIGINS=*
    ```
 
 ## Running the Application
@@ -331,6 +347,27 @@ The API uses JWT (JSON Web Tokens) for authentication:
 - **Public Endpoints**: Read operations are publicly accessible
 - **Superuser Access**: Some endpoints require superuser privileges
 - **Password Security**: Passwords are hashed using bcrypt (max 72 characters)
+- **Environment Configuration**: Configurable via environment variables
+
+### Environment Variables
+
+The application uses environment variables for configuration. All variables have sensible defaults:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SECRET_KEY` | `your-secret-key-change-this-in-production` | JWT secret key (⚠️ **Change in production!**) |
+| `ALGORITHM` | `HS256` | JWT algorithm |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | Token expiration time in minutes |
+| `DATABASE_URL` | `sqlite:///./books.db` | Database connection URL |
+| `APP_NAME` | `Books & Articles API` | Application name |
+| `APP_VERSION` | `1.0.0` | Application version |
+| `CORS_ORIGINS` | `*` | Allowed CORS origins (comma-separated) |
+
+**Production Security Notes:**
+- Always change `SECRET_KEY` to a secure random string
+- Set `CORS_ORIGINS` to specific domains, not `*`
+- Use a production database (PostgreSQL, MySQL) instead of SQLite
+- Consider using environment-specific configurations
 
 ### Database Migrations
 

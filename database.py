@@ -1,9 +1,13 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import os
+from dotenv import load_dotenv
 
-# SQLite database URL
-SQLALCHEMY_DATABASE_URL = "sqlite:///./books.db"
+# Load environment variables
+load_dotenv()
+
+# Database URL from environment variable
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./books.db")
 
 # Create SQLAlchemy engine
 engine = create_engine(
