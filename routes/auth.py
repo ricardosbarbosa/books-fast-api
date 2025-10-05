@@ -1,10 +1,14 @@
 from datetime import timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from database import get_db
 from models import User
-from schemas import UserCreate, UserResponse, Token, UserLogin
+from schemas import (
+    UserCreate, UserResponse, Token, UserLogin, 
+    GoogleUserInfo, GoogleAuthResponse
+)
 from auth import (
     authenticate_user, 
     create_access_token, 
@@ -12,6 +16,10 @@ from auth import (
     get_current_superuser,
     get_password_hash,
     ACCESS_TOKEN_EXPIRE_MINUTES
+)
+from google_auth import (
+    get_google_authorization_url, exchange_code_for_token, 
+    get_google_user_info
 )
 
 router = APIRouter()
@@ -92,3 +100,78 @@ def read_user(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+# Google OAuth2 Routes
+
+@router.get("/google/login")
+async def google_login():
+    """Initiate Google OAuth2 login"""
+    try:
+        authorization_url, state = get_google_authorization_url()
+        return {"authorization_url": authorization_url, "state": state}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/google/callback")
+async def google_callback(request: Request, db: Session = Depends(get_db)):
+    """Handle Google OAuth2 callback"""
+    try:
+        # Get authorization code from query parameters
+        code = request.query_params.get("code")
+        if not code:
+            raise HTTPException(status_code=400, detail="Authorization code not provided")
+        
+        # Exchange code for access token
+        token_response = await exchange_code_for_token(code)
+        access_token = token_response.get("access_token")
+        
+        if not access_token:
+            raise HTTPException(status_code=400, detail="Failed to get access token")
+        
+        # Get user info from Google
+        google_user_info = await get_google_user_info(access_token)
+        
+        # Check if user already exists
+        existing_user = db.query(User).filter(
+            (User.google_id == google_user_info["id"]) | 
+            (User.email == google_user_info["email"])
+        ).first()
+        
+        if existing_user:
+            # Update existing user with Google info if needed
+            if not existing_user.google_id:
+                existing_user.google_id = google_user_info["id"]
+                existing_user.provider = "google"
+                existing_user.avatar_url = google_user_info.get("picture")
+                db.commit()
+                db.refresh(existing_user)
+        else:
+            # Create new user
+            new_user = User(
+                email=google_user_info["email"],
+                full_name=google_user_info["name"],
+                google_id=google_user_info["id"],
+                avatar_url=google_user_info.get("picture"),
+                provider="google",
+                is_active=True,
+                is_superuser=False
+            )
+            db.add(new_user)
+            db.commit()
+            db.refresh(new_user)
+            existing_user = new_user
+        
+        # Create JWT token for our API
+        jwt_token = create_access_token(
+            data={"sub": existing_user.email}, 
+            expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        )
+        
+        return GoogleAuthResponse(
+            access_token=jwt_token,
+            token_type="bearer",
+            user=existing_user
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Google authentication failed: {str(e)}")

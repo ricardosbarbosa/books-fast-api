@@ -13,6 +13,8 @@ A FastAPI application for managing books and articles with SQLite database using
 
 ### 🔐 Security & Authentication
 - **JWT Authentication**: Secure token-based authentication system
+- **Google OAuth2**: Sign in with Google accounts
+- **Dual Authentication**: Both username/password and Google OAuth2 support
 - **Role-based Authorization**: Different access levels for regular users and superusers
 - **User Management**: Registration, login, and profile management
 - **Password Security**: bcrypt hashing with automatic length validation
@@ -158,6 +160,8 @@ If you prefer manual setup:
 |--------|----------|-------------|---------------|
 | POST | `/api/v1/auth/register` | Register a new user | No |
 | POST | `/api/v1/auth/login` | Login user and get access token | No |
+| GET | `/api/v1/auth/google/login` | Initiate Google OAuth2 login | No |
+| GET | `/api/v1/auth/google/callback` | Google OAuth2 callback | No |
 | GET | `/api/v1/auth/me` | Get current user information | Yes |
 | GET | `/api/v1/auth/users` | Get all users | Superuser only |
 | GET | `/api/v1/auth/users/{user_id}` | Get specific user | Superuser only |
@@ -232,6 +236,22 @@ curl -X POST "http://localhost:8000/api/v1/auth/login" \
 ```bash
 curl -X GET "http://localhost:8000/api/v1/auth/me" \
      -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+#### Google OAuth2 Login
+```bash
+# Step 1: Get Google authorization URL
+curl -X GET "http://localhost:8000/api/v1/auth/google/login"
+
+# Response:
+# {
+#   "authorization_url": "https://accounts.google.com/o/oauth2/auth?...",
+#   "state": "random_state_string"
+# }
+
+# Step 2: User visits the authorization_url in browser
+# Step 3: Google redirects to callback with authorization code
+# Step 4: The callback endpoint handles the code and returns JWT token
 ```
 
 ### Books
@@ -421,12 +441,38 @@ The application uses environment variables for configuration. All variables have
 | `APP_NAME` | `Books & Articles API` | Application name |
 | `APP_VERSION` | `1.0.0` | Application version |
 | `CORS_ORIGINS` | `*` | Allowed CORS origins (comma-separated) |
+| `GOOGLE_CLIENT_ID` | - | Google OAuth2 client ID |
+| `GOOGLE_CLIENT_SECRET` | - | Google OAuth2 client secret |
+| `GOOGLE_REDIRECT_URI` | `http://localhost:8000/api/v1/auth/google/callback` | Google OAuth2 redirect URI |
 
 **Production Security Notes:**
 - Always change `SECRET_KEY` to a secure random string
 - Set `CORS_ORIGINS` to specific domains, not `*`
 - Use a production database (PostgreSQL, MySQL) instead of SQLite
 - Consider using environment-specific configurations
+
+### Google OAuth2 Setup
+
+To enable Google OAuth2 authentication:
+
+1. **Go to Google Cloud Console**: https://console.cloud.google.com/
+2. **Create a new project** or select an existing one
+3. **Enable Google+ API**:
+   - Go to "APIs & Services" > "Library"
+   - Search for "Google+ API" and enable it
+4. **Create OAuth2 credentials**:
+   - Go to "APIs & Services" > "Credentials"
+   - Click "Create Credentials" > "OAuth 2.0 Client IDs"
+   - Choose "Web application"
+   - Add authorized redirect URIs:
+     - Development: `http://localhost:8000/api/v1/auth/google/callback`
+     - Production: `https://yourdomain.com/api/v1/auth/google/callback`
+5. **Update your `.env` file**:
+   ```env
+   GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=your-client-secret
+   GOOGLE_REDIRECT_URI=http://localhost:8000/api/v1/auth/google/callback
+   ```
 
 ### Database Migrations
 

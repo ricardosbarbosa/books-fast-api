@@ -20,6 +20,8 @@ class UserResponse(UserBase):
     id: int
     is_active: bool
     is_superuser: bool
+    provider: str
+    avatar_url: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
     
@@ -39,3 +41,15 @@ class TokenData(BaseModel):
 class UserLogin(BaseModel):
     username: str = Field(..., description="Username or email")
     password: str = Field(..., max_length=72, description="Password (max 72 characters)")
+
+class GoogleUserInfo(BaseModel):
+    id: str
+    email: str
+    name: str
+    picture: Optional[str] = None
+    verified_email: bool = True
+
+class GoogleAuthResponse(BaseModel):
+    access_token: str
+    token_type: str
+    user: UserResponse
