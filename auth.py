@@ -29,7 +29,8 @@ pwd_context = CryptContext(
 # OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="api/v1/auth/login",
-    scheme_name="Email/Password Authentication"
+    scheme_name="Email/Password Authentication",
+    description="Enter your EMAIL ADDRESS in the 'username' field and your password in the 'password' field. The 'username' field accepts email addresses as we use email as the primary identifier."
 )
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

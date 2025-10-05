@@ -14,7 +14,7 @@ A FastAPI application for managing books and articles with SQLite database using
 ### 🔐 Security & Authentication
 - **JWT Authentication**: Secure token-based authentication system
 - **Google OAuth2**: Sign in with Google accounts
-- **Dual Authentication**: Both username/password and Google OAuth2 support
+- **Dual Authentication**: Both email/password and Google OAuth2 support
 - **Role-based Authorization**: Different access levels for regular users and superusers
 - **User Management**: Registration, login, and profile management
 - **Password Security**: bcrypt hashing with automatic length validation
@@ -217,7 +217,6 @@ If you prefer manual setup:
 curl -X POST "http://localhost:8000/api/v1/auth/register" \
      -H "Content-Type: application/json" \
      -d '{
-       "username": "john_doe",
        "email": "john@example.com",
        "password": "securepassword123",
        "full_name": "John Doe"
@@ -230,7 +229,7 @@ curl -X POST "http://localhost:8000/api/v1/auth/register" \
 ```bash
 curl -X POST "http://localhost:8000/api/v1/auth/login" \
      -H "Content-Type: application/x-www-form-urlencoded" \
-     -d "username=user@example.com&password=securepassword123"
+     -d "email=user@example.com&password=securepassword123"
 ```
 
 #### Login User (Email-based JSON - Recommended)
@@ -394,7 +393,6 @@ The `articles` table includes the following fields:
 #### Users Table
 The `users` table includes the following fields:
 - `id`: Primary key (auto-increment)
-- `username`: Username (required, unique, max 50 characters)
 - `email`: Email address (required, unique, max 100 characters)
 - `hashed_password`: Hashed password (required)
 - `full_name`: Full name (optional, max 100 characters)
@@ -430,7 +428,7 @@ To add a new resource (e.g., "Authors"):
 
 The API uses JWT (JSON Web Tokens) for authentication:
 
-- **Registration**: Users can register with username, email, and password
+- **Registration**: Users can register with email, and password
 - **Login**: Users receive a JWT token upon successful login
 - **Token Expiration**: Tokens expire after 30 minutes (configurable)
 - **Protected Endpoints**: Create, Update, Delete operations require authentication
@@ -511,7 +509,7 @@ uvicorn main:app --port 8001
 #### 🔐 Authentication Issues
 - **Password too long**: Ensure passwords are ≤72 characters (bcrypt limitation)
 - **Invalid token**: Check if token is expired (default: 30 minutes)
-- **User not found**: Verify username/email exists in database
+- **User not found**: Verify email exists in database
 
 #### 📦 Dependency Issues
 ```bash
